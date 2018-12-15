@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace MagicOnionServer
 {
+    /// <summary>
+    /// Server -> ClientのAPI
+    /// </summary>
     public interface IChatHubReceiver
     {
         void OnJoin(string name);
@@ -14,6 +17,9 @@ namespace MagicOnionServer
         void OnSendMessage(string name, string message);
     }
 
+    /// <summary>
+    /// CLient -> ServerのAPI
+    /// </summary>
     public interface IChatHub : IStreamingHub<IChatHub, IChatHubReceiver>
     {
         Task JoinAsync(string userName);
@@ -25,13 +31,12 @@ namespace MagicOnionServer
     {
         IGroup room;
         string me;
-        IInMemoryStorage<string> storage;
 
         public async Task JoinAsync(string userName)
         {
             //ルーム名は固定
             const string roomName = "SampleRoom";
-            (room, storage) = await this.Group.AddAsync(roomName, userName);
+            this.room = await this.Group.AddAsync(roomName);
             me = userName;
             this.Broadcast(room).OnJoin(userName);
         }
@@ -50,6 +55,7 @@ namespace MagicOnionServer
 
         protected override ValueTask OnDisconnected()
         {
+            //nop
             return CompletedTask;
         }
     }
