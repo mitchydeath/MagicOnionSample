@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 public class ChatComponent : MonoBehaviour, IChatHubReceiver
 {
+    private Channel _channel;
     private IChatHub _chutHub;
     private bool _isJoin;
 
@@ -29,8 +30,8 @@ public class ChatComponent : MonoBehaviour, IChatHubReceiver
         this._isJoin = false;
 
         //Client側のHubの初期化
-        var channel = new Channel("localhost:12345", ChannelCredentials.Insecure);
-        this._chutHub = StreamingHubClient.Connect<IChatHub, IChatHubReceiver>(channel, this);
+        this._channel = new Channel("localhost:12345", ChannelCredentials.Insecure);
+        this._chutHub = StreamingHubClient.Connect<IChatHub, IChatHubReceiver>(this._channel, this);
 
         //メッセージ送信ボタンはデフォルト非表示
         this.SendMessageButton.gameObject.SetActive(false);
@@ -40,6 +41,12 @@ public class ChatComponent : MonoBehaviour, IChatHubReceiver
     void Update()
     {
 
+    }
+
+    async void OnDestroy()
+    {
+        await this._chutHub.DisposeAsync();
+        await this._channel.ShutdownAsync();
     }
 
     #region Client -> Server
